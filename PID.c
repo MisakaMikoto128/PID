@@ -2,8 +2,8 @@
 #include <math.h>
 /*
 Author: LiuYuanlin
-Date:   2021Äê12ÔÂ29ÈÕ
-Time:   10µã49·Ö
+Date:   2021å¹´12æœˆ29æ—¥
+Time:   10ç‚¹49åˆ†
 Project:PID library 2.0
 */
 
@@ -16,20 +16,20 @@ Project:PID library 2.0
 
 void IncPIDInit(pPID self)
 {
-    self->Target = 0; //Éè¶¨Öµ,The "black box"'s output
+    self->Target = 0; //è®¾å®šå€¼,The "black box"'s output
     self->iSampling = 0;
-    self->Step = 1; //·µ»Ø½á¹û±ÈÀý
+    self->Step = 1; //è¿”å›žç»“æžœæ¯”ä¾‹
 
-    self->LastError = 0; //Ç°2´ÎÎó²îÖµ
-    self->PrevError = 0; //Ç°1´ÎÎó²îÖµ
+    self->LastError = 0; //å‰2æ¬¡è¯¯å·®å€¼
+    self->PrevError = 0; //å‰1æ¬¡è¯¯å·®å€¼
 
-    self->P = 0.f; //±ÈÀý
-    self->I = 0.f; //»ý·Ö
-    self->D = 0.f; //Î¢·Ö
+    self->P = 0.f; //æ¯”ä¾‹
+    self->I = 0.f; //ç§¯åˆ†
+    self->D = 0.f; //å¾®åˆ†
 
-    self->iError = 0; //µ±Ç°Îó²î
+    self->iError = 0; //å½“å‰è¯¯å·®
 
-    self->F = 0; //Êä³ö·µ»ØÖµ,The control point of output
+    self->F = 0; //è¾“å‡ºè¿”å›žå€¼,The control point of output
     self->Fmax = 1.0;
     self->Fmin = 0;
     self->dt = 1;
@@ -43,7 +43,7 @@ Return:     None
 void PosPIDCalc_NormalSimple(pPID self)
 {
     float F = self->F;
-    //µ±Ç°Îó²î
+    //å½“å‰è¯¯å·®
     self->iError = self->Target - self->iSampling;
 
     // Proportional term
@@ -74,12 +74,12 @@ Fun:        incremental PID
 Description:when Target minus SamplingValue equals is negitive,the normalized 
             system parameter, F , will increase, and if Target minus SamplingValue 
             equals is positive, then F will decrease.
-            --> Target > iSampling -> F ¡ü, Target < iSampling -> F ¡ý
+            --> Target > iSampling -> F â†‘, Target < iSampling -> F â†“
 Return:     None          
 */
 void IncPIDCalc_NormalSimple(pPID self)
 {
-    //µ±Ç°Îó²î
+    //å½“å‰è¯¯å·®
     self->iError = self->Target - self->iSampling;
     float delta = 0;
     float F = 0;
@@ -88,8 +88,8 @@ void IncPIDCalc_NormalSimple(pPID self)
             self->D * (self->iError - self->PrevError);
 
     // Calculate total output
-    self->PrevError = self->LastError; // ¸üÐÂÇ°´ÎÎó²î
-    self->LastError = self->iError;    // ¸üÐÂÉÏ´ÎÎó²î
+    self->PrevError = self->LastError; // æ›´æ–°å‰æ¬¡è¯¯å·®
+    self->LastError = self->iError;    // æ›´æ–°ä¸Šæ¬¡è¯¯å·®
 
     F = self->F + delta;
 
@@ -108,7 +108,7 @@ Description:1. When Target minus SamplingValue equals is negitive,the normalized
             equals is positive, then F will decrease.
             2. And the P,I,D parameter will multiply by FirstContrlScale when  
             LasttContrlPoint < absError < FirstContrlPoint.
-            3. --> Target > iSampling -> F ¡ü, Target < iSampling -> F ¡ý
+            3. --> Target > iSampling -> F â†‘, Target < iSampling -> F â†“
 Return:     None          
 */
 void IncPIDCalcDelta_Normal_TwoStage(pPID self, float FirstContrlPoint, float LasttContrlPoint, float FirstContrlScale)
@@ -117,7 +117,7 @@ void IncPIDCalcDelta_Normal_TwoStage(pPID self, float FirstContrlPoint, float La
     float F = 0;
     float absError = 0;
 
-    //µ±Ç°Îó²î
+    //å½“å‰è¯¯å·®
     self->iError = self->Target - self->iSampling;
     absError = fabsf(self->iError);
 
@@ -143,8 +143,8 @@ void IncPIDCalcDelta_Normal_TwoStage(pPID self, float FirstContrlPoint, float La
     }
 
     // Calculate total output
-    self->PrevError = self->LastError; // ¸üÐÂÇ°´ÎÎó²î
-    self->LastError = self->iError;    // ¸üÐÂÉÏ´ÎÎó²î
+    self->PrevError = self->LastError; // æ›´æ–°å‰æ¬¡è¯¯å·®
+    self->LastError = self->iError;    // æ›´æ–°ä¸Šæ¬¡è¯¯å·®
 
     F = self->F + F;
     // Restrict to max/min
@@ -163,7 +163,7 @@ Description:1. When Target minus SamplingValue equals is negitive,the normalized
             system parameter, F , will increase, and if Target minus SamplingValue 
             equals is positive, then F will decrease.
             2. And the P,I,D parameter will multiply by decayfun(iError).
-            3. --> Target > iSampling -> F ¡ü, Target < iSampling -> F ¡ý
+            3. --> Target > iSampling -> F â†‘, Target < iSampling -> F â†“
 Return:     None          
 */
 void IncPIDCalcDelta_Normal_Decay(pPID self, PIDDecayFun deacyfun)
@@ -171,7 +171,7 @@ void IncPIDCalcDelta_Normal_Decay(pPID self, PIDDecayFun deacyfun)
 
     float F = 0;
 
-    //µ±Ç°Îó²î
+    //å½“å‰è¯¯å·®
     self->iError = self->Target - self->iSampling;
     /*
     Please don't use auto formate to format this file, 
@@ -187,8 +187,8 @@ void IncPIDCalcDelta_Normal_Decay(pPID self, PIDDecayFun deacyfun)
     F *= deacyfun(self->iError);
 
     // Calculate total output
-    self->PrevError = self->LastError; // ¸üÐÂÇ°´ÎÎó²î
-    self->LastError = self->iError;    // ¸üÐÂÉÏ´ÎÎó²î
+    self->PrevError = self->LastError; // æ›´æ–°å‰æ¬¡è¯¯å·®
+    self->LastError = self->iError;    // æ›´æ–°ä¸Šæ¬¡è¯¯å·®
 
     F = self->F + F;
     // Restrict to max/min
@@ -207,7 +207,7 @@ Description:1. When Target minus SamplingValue equals is negitive,the normalized
             system parameter, F , will increase, and if Target minus SamplingValue 
             equals is positive, then F will decrease.
             2. And the P,I,D parameter will multiply by decayfun(iError).
-            3. --> Target > iSampling -> F ¡ü, Target < iSampling -> F ¡ý
+            3. --> Target > iSampling -> F â†‘, Target < iSampling -> F â†“
             4. self->iError normalized.
 Return:     None          
 */
@@ -215,7 +215,7 @@ void IncPIDCalcDelta_NormalSampleAndF_Decay(pPID self, PIDDecayFun deacyfun)
 {
     float F = 0;
 
-    //µ±Ç°Îó²î
+    //å½“å‰è¯¯å·®
     self->iError = self->Target - self->iSampling;
     /*
     Please don't use auto formate to format this file, 
@@ -231,8 +231,8 @@ void IncPIDCalcDelta_NormalSampleAndF_Decay(pPID self, PIDDecayFun deacyfun)
     F *= deacyfun(self->iError / self->sysArg);
 
     // Calculate total output
-    self->PrevError = self->LastError; // ¸üÐÂÇ°´ÎÎó²î
-    self->LastError = self->iError;    // ¸üÐÂÉÏ´ÎÎó²î
+    self->PrevError = self->LastError; // æ›´æ–°å‰æ¬¡è¯¯å·®
+    self->LastError = self->iError;    // æ›´æ–°ä¸Šæ¬¡è¯¯å·®
 
     F = self->F + F;
     // Restrict to max/min

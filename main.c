@@ -17,19 +17,19 @@ void UserPIDInit(){
     APID.Fmin = 0.1;
     APID.F = 0.5;
     APID.sysArg = 200000;
-    APID.P = 0.0001;
-    APID.I = 0.002;
+    APID.P = 0.001;
+    APID.I = 0.02;
     APID.D = 0;
     APID.Target = 100;
 }
 
 void loop1(){
     
-    IncPIDCalcDelta_Normal_Decay(&APID,piddecayfun); //Target - Sample > 0 , F¡ü.
+    IncPIDCalcDelta_Normal_Decay(&APID,piddecayfun); //Target - Sample > 0 , Fâ†‘.
     //when you using this pid library "PIDUpdateValue_P", you need to sure System control parameters are positively 
     //correlated with system output, otherwish you should use "PIDUpdateValue_N"
-    CCR = PIDUpdateValue_P(&APID); //¡ü
-    APID.iSampling = log(CCR)*10; //¡ü
+    CCR = PIDUpdateValue_P(&APID); //â†‘
+    APID.iSampling = log(CCR)*10; //â†‘
     printf("APID.F = %f\r\n",APID.F);
     printf("CCR = %d\r\n",CCR);
     printf("iSampling = %f\r\n",APID.iSampling);
@@ -46,11 +46,11 @@ float piddecayfun2(float z){
 
 void loop2(){
     
-    IncPIDCalcDelta_NormalSampleAndF_Decay(&APID,piddecayfun2); //Target - Sample > 0 , F¡ü. IncPIDCalcDelta_Normal_DecayÊÕÁ²µÄÊ±ºòÓĞ¸öÎ¢Ğ¡µÄÕğµ´ÄÑÒÔÊÕÁ²¡£
+    IncPIDCalcDelta_NormalSampleAndF_Decay(&APID,piddecayfun2); //Target - Sample > 0 , Fâ†‘. IncPIDCalcDelta_Normal_Decayæ”¶æ•›çš„æ—¶å€™æœ‰ä¸ªå¾®å°çš„éœ‡è¡éš¾ä»¥æ”¶æ•›ã€‚
     //when you using this pid library "PIDUpdateValue_P", you need to sure System control parameters are positively 
     //correlated with system output, otherwish you should use "PIDUpdateValue_N"
-    CCR = PIDUpdateValue_P(&APID); //¡ü
-    APID.iSampling = log(CCR)*10; //¡ü
+    CCR = PIDUpdateValue_P(&APID); //â†‘
+    APID.iSampling = log(CCR)*10; //â†‘
     printf("APID.F = %f\r\n",APID.F);
     printf("CCR = %d\r\n",CCR);
     printf("iSampling = %f\r\n",APID.iSampling);
@@ -62,8 +62,8 @@ void loop2(){
 void loop3(){
     
     IncPIDCalc_NormalSimple(&APID); 
-    CCR = PIDUpdateValue_P(&APID); //¡ü
-    APID.iSampling = log(CCR)*10; //¡ü
+    CCR = PIDUpdateValue_P(&APID); //â†‘
+    APID.iSampling = log(CCR)*10; //â†‘
     printf("APID.F = %f\r\n",APID.F);
     printf("CCR = %d\r\n",CCR);
     printf("iSampling = %f\r\n",APID.iSampling);
@@ -75,7 +75,7 @@ int main(){
     UserPIDInit();
     while (1)
     {
-        loop3();
+        loop1();
     }
     
 

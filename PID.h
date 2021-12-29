@@ -4,7 +4,7 @@
 typedef struct PID
 {
     float Target;
-    float iSampling;//ÏµÍ³¹Ø²âÖµ/²ÉÑùÖµ
+    float iSampling;//ç³»ç»Ÿå…³æµ‹å€¼/é‡‡æ ·å€¼
     float P;
     float I;
     float D;
@@ -22,7 +22,7 @@ typedef struct PID
     float dt;
     float Step;
 
-    float sysArg;//ÒòÎªÕâ¸öÖµ»áÓÃÓÚÃ¿´Î·´À¡ÖĞÏµÍ³²ÎÊıµÄ¸üĞÂ£¬ËùÒÔ¿ÉÄÜÑ¡ÔñÖ±½ÓÓÃµÃµ½µÄµ÷ÖÆ¶ÈÈ¥³ËÒÔÒ»¸öÕûÊı¡£
+    float sysArg;//å› ä¸ºè¿™ä¸ªå€¼ä¼šç”¨äºæ¯æ¬¡åé¦ˆä¸­ç³»ç»Ÿå‚æ•°çš„æ›´æ–°ï¼Œæ‰€ä»¥å¯èƒ½é€‰æ‹©ç›´æ¥ç”¨å¾—åˆ°çš„è°ƒåˆ¶åº¦å»ä¹˜ä»¥ä¸€ä¸ªæ•´æ•°ã€‚
 
 } PID, *pPID;
 
