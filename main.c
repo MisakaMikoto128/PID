@@ -46,7 +46,7 @@ float piddecayfun2(float z){
 
 void loop2(){
     
-    IncPIDCalcDelta_Normal_Decay(&APID,piddecayfun2); //Target - Sample > 0 , F↑. 收敛的时候有个微小的震荡难以收敛。
+    IncPIDCalcDelta_NormalSampleAndF_Decay(&APID,piddecayfun2); //Target - Sample > 0 , F↑. IncPIDCalcDelta_Normal_Decay收敛的时候有个微小的震荡难以收敛。
     //when you using this pid library "PIDUpdateValue_P", you need to sure System control parameters are positively 
     //correlated with system output, otherwish you should use "PIDUpdateValue_N"
     CCR = PIDUpdateValue_P(&APID); //↑
@@ -58,12 +58,24 @@ void loop2(){
     Sleep(10);
 }
 
+
+void loop3(){
+    
+    IncPIDCalc_NormalSimple(&APID); 
+    CCR = PIDUpdateValue_P(&APID); //↑
+    APID.iSampling = log(CCR)*10; //↑
+    printf("APID.F = %f\r\n",APID.F);
+    printf("CCR = %d\r\n",CCR);
+    printf("iSampling = %f\r\n",APID.iSampling);
+    printf("Seq = %d\r\n",Seq++);
+    Sleep(10);
+}
 int main(){
 
     UserPIDInit();
     while (1)
     {
-        loop1();
+        loop3();
     }
     
 

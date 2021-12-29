@@ -18,7 +18,7 @@ void IncPIDInit(pPID self)
 {
     self->Target = 0; //设定值,The "black box"'s output
     self->iSampling = 0;
-    self->Step = 1;   //返回结果比例
+    self->Step = 1; //返回结果比例
 
     self->LastError = 0; //前2次误差值
     self->PrevError = 0; //前1次误差值
@@ -157,7 +157,6 @@ void IncPIDCalcDelta_Normal_TwoStage(pPID self, float FirstContrlPoint, float La
     self->F = F;
 }
 
-
 /*
 Fun:        incremental PID
 Description:1. When Target minus SamplingValue equals is negitive,the normalized 
@@ -167,13 +166,13 @@ Description:1. When Target minus SamplingValue equals is negitive,the normalized
             3. --> Target > iSampling -> F ↑, Target < iSampling -> F ↓
 Return:     None          
 */
-void IncPIDCalcDelta_Normal_Decay(pPID self,PIDDecayFun deacyfun)
+void IncPIDCalcDelta_Normal_Decay(pPID self, PIDDecayFun deacyfun)
 {
 
     float F = 0;
 
     //当前误差
-    self->iError = self->Target - self->iSampling; 
+    self->iError = self->Target - self->iSampling;
     /*
     Please don't use auto formate to format this file, 
     because the pid calculate code is too long and it will
@@ -202,7 +201,6 @@ void IncPIDCalcDelta_Normal_Decay(pPID self,PIDDecayFun deacyfun)
     self->F = F;
 }
 
-
 /*
 Fun:        incremental PID
 Description:1. When Target minus SamplingValue equals is negitive,the normalized 
@@ -213,13 +211,12 @@ Description:1. When Target minus SamplingValue equals is negitive,the normalized
             4. self->iError normalized.
 Return:     None          
 */
-void IncPIDCalcDelta_NormalSampleAndF_Decay(pPID self,PIDDecayFun deacyfun)
+void IncPIDCalcDelta_NormalSampleAndF_Decay(pPID self, PIDDecayFun deacyfun)
 {
-
     float F = 0;
 
     //当前误差
-    self->iError = self->Target - self->iSampling; 
+    self->iError = self->Target - self->iSampling;
     /*
     Please don't use auto formate to format this file, 
     because the pid calculate code is too long and it will
@@ -228,10 +225,10 @@ void IncPIDCalcDelta_NormalSampleAndF_Decay(pPID self,PIDDecayFun deacyfun)
 
     //Here , Think of F as delta.
     F = self->P * (self->iError - self->LastError) +
-        self->I * self->iError +
+        self->I *  self->iError +
         self->D * (self->iError - 2 * self->LastError + self->PrevError);
 
-    F *= deacyfun(self->iError/self->sysArg);
+    F *= deacyfun(self->iError / self->sysArg);
 
     // Calculate total output
     self->PrevError = self->LastError; // 更新前次误差
@@ -252,10 +249,11 @@ void IncPIDCalcDelta_NormalSampleAndF_Decay(pPID self,PIDDecayFun deacyfun)
 a > 0
 y = 1 - 4*e^(-ax)/(1+b*e^(-ax))^2
 */
-float dsigmoidn(float z,float a){
-    float e_ = exp(-a*z);
-    float q_ = 1.0+e_;
-	return 1 - 4*e_/q_*q_;
+float dsigmoidn(float z, float a)
+{
+    float e_ = exp(-a * z);
+    float q_ = 1.0 + e_;
+    return 1 - 4 * e_ / q_ * q_;
 }
 
 /*
@@ -263,9 +261,10 @@ a > 0 and b > 0
 y = 1/(1+b*e^(-a|x|))
 Be careful of spills and normalize errors if you use them.
 */
-float sigmoidabsx(float z,float a,float b){
+float sigmoidabsx(float z, float a, float b)
+{
     z = fabsf(z);
-	return 1.0f/(b*exp(-a*z));
+    return 1.0f / (b * exp(-a * z));
 }
 
 /*
@@ -273,31 +272,36 @@ a > 0
 y = tanh(a|z|)
 Be careful of spills and normalize errors if you use them.
 */
-float tanhabsx(float z,float a){
+float tanhabsx(float z, float a)
+{
     z = fabsf(z);
-    return tanh(a*z);
+    return tanh(a * z);
 }
 
 /*
 a > 0
 y = 1 - 1/sqrt(a|x|+1)
 */
-float px1(float z,float a){
+float px1(float z, float a)
+{
     z = fabsf(z);
-    return 1 - 1.0f/sqrt(a*z+1);
+    return 1 - 1.0f / sqrt(a * z + 1);
 }
-
 
 /*
 x > 0
 y = 1/x*|X|, |X| < x 
 y = 1, |X| > x 
 */
-float obliquestepfun(float z,float x){
+float obliquestepfun(float z, float x)
+{
     z = fabsf(z);
-    if(z > x){
+    if (z > x)
+    {
         return 1;
-    }else{
-        return 1/x*z;
-    }   
+    }
+    else
+    {
+        return 1 / x * z;
+    }
 }
