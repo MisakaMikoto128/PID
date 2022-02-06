@@ -16,7 +16,7 @@ void UserPIDInit(){
     APID.Fmax = 0.9;
     APID.Fmin = 0.1;
     APID.F = 0.5;
-    APID.sysArg = 200000;
+    APID.sysArg = 200000; // eg. In DC/DC buck control system , this value is PWM output timer's period.
     APID.P = 0.001;
     APID.I = 0.02;
     APID.D = 0;
@@ -62,7 +62,7 @@ void loop2(){
 void loop3(){
     
     IncPIDCalc_NormalSimple(&APID); 
-    CCR = PIDUpdateValue_P(&APID); //↑
+    CCR = PIDUpdateValue_P(&APID); //↑,assume CCR is stm32 timer pwm duty control register. 
     APID.iSampling = log(CCR)*10; //↑
     printf("APID.F = %f\r\n",APID.F);
     printf("CCR = %d\r\n",CCR);
