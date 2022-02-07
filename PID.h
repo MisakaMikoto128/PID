@@ -1,6 +1,7 @@
 #ifndef __PID_H
 #define __PID_H
-
+typedef float (*PIDDecayFun)(float);
+#define PID_DECAY_FUNC_NULL ((PIDDecayFun)0)
 typedef struct PID
 {
     float Target;
@@ -24,9 +25,11 @@ typedef struct PID
 
     float sysArg;//因为这个值会用于每次反馈中系统参数的更新，所以可能选择直接用得到的调制度去乘以一个整数。
 
+    PIDDecayFun pidDecayByAbsErrorFunc; //PID参数随误差减小而减小的衰减函数，为NULL时表明不使用衰减。
+
 } PID, *pPID;
 
-typedef float (*PIDDecayFun)(float);
+
 
 void IncPIDInit(pPID self);
 void PosPIDCalc_NormalSimple(pPID self);

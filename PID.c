@@ -34,11 +34,13 @@ void IncPIDInit(pPID self)
     self->Fmin = 0;
     self->dt = 1;
     self->sysArg = 0;
+
+    self->pidDecayByAbsErrorFunc = PID_DECAY_FUNC_NULL;
 }
 
-/*
-Position type PID  
-Return:     None 
+/**
+*@brief Position type PID  
+*@return: None 
 */
 void PosPIDCalc_NormalSimple(pPID self)
 {
@@ -157,16 +159,17 @@ void IncPIDCalcDelta_Normal_TwoStage(pPID self, float FirstContrlPoint, float La
     self->F = F;
 }
 
-/*
-Fun:        incremental PID
-Description:1. When Target minus SamplingValue equals is negitive,the normalized 
+/**
+* @brief :        incremental PID
+* @description:1. When Target minus SamplingValue equals is negitive,the normalized 
             system parameter, F , will increase, and if Target minus SamplingValue 
             equals is positive, then F will decrease.
             2. And the P,I,D parameter will multiply by decayfun(iError).
             3. --> Target > iSampling -> F ↑, Target < iSampling -> F ↓
-Return:     None          
+* @eturn:     None      
+* @note please sure the deacyfun is not NULL.    
 */
-void IncPIDCalcDelta_Normal_Decay(pPID self, PIDDecayFun deacyfun)
+void IncPIDCalcDelta_Normal_Decay(pPID self,PIDDecayFun deacyfun)
 {
 
     float F = 0;
@@ -201,20 +204,21 @@ void IncPIDCalcDelta_Normal_Decay(pPID self, PIDDecayFun deacyfun)
     self->F = F;
 }
 
-/*
-Fun:        incremental PID
-Description:1. When Target minus SamplingValue equals is negitive,the normalized 
+/**
+* @brief :        incremental PID
+* @description:1. When Target minus SamplingValue equals is negitive,the normalized 
             system parameter, F , will increase, and if Target minus SamplingValue 
             equals is positive, then F will decrease.
             2. And the P,I,D parameter will multiply by decayfun(iError).
             3. --> Target > iSampling -> F ↑, Target < iSampling -> F ↓
             4. self->iError normalized.
-Return:     None          
+* @return:     None 
+* @note please sure the deacyfun is not NULL.
 */
-void IncPIDCalcDelta_NormalSampleAndF_Decay(pPID self, PIDDecayFun deacyfun)
+void IncPIDCalcDelta_NormalSampleAndF_Decay(pPID self,PIDDecayFun deacyfun)
 {
     float F = 0;
-
+    
     //当前误差
     self->iError = self->Target - self->iSampling;
     /*
