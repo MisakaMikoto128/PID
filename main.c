@@ -25,7 +25,7 @@ void UserPIDInit(){
 
 void loop1(){
     
-    IncPIDCalcDelta_Normal_Decay(&APID,piddecayfun); //Target - Sample > 0 , F↑.
+    IncPIDCalcDelta_NormalizedF_Decay(&APID,piddecayfun); //Target - Sample > 0 , F↑.
     //when you using this pid library "PIDUpdateValue_P", you need to sure System control parameters are positively 
     //correlated with system output, otherwish you should use "PIDUpdateValue_N"
     CCR = PIDUpdateValue_P(&APID); //↑
@@ -46,7 +46,7 @@ float piddecayfun2(float z){
 
 void loop2(){
     
-    IncPIDCalcDelta_NormalSampleAndF_Decay(&APID,piddecayfun2); //Target - Sample > 0 , F↑. IncPIDCalcDelta_Normal_Decay收敛的时候有个微小的震荡难以收敛。
+    IncPIDCalcDelta_NormalizedFAndDecayFunInput_Decay(&APID,piddecayfun2); //Target - Sample > 0 , F↑. IncPIDCalcDelta_NormalizedF_Decay收敛的时候有个微小的震荡难以收敛。
     //when you using this pid library "PIDUpdateValue_P", you need to sure System control parameters are positively 
     //correlated with system output, otherwish you should use "PIDUpdateValue_N"
     CCR = PIDUpdateValue_P(&APID); //↑
@@ -61,7 +61,7 @@ void loop2(){
 
 void loop3(){
     
-    IncPIDCalc_NormalSimple(&APID); 
+    IncPIDCalc_NormalizedF(&APID); 
     CCR = PIDUpdateValue_P(&APID); //↑,assume CCR is stm32 timer pwm duty control register. 
     APID.iSampling = log(CCR)*10; //↑
     printf("APID.F = %f\r\n",APID.F);
@@ -70,6 +70,7 @@ void loop3(){
     printf("Seq = %d\r\n",Seq++);
     Sleep(10);
 }
+
 int main(){
 
     UserPIDInit();

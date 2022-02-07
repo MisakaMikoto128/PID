@@ -27,7 +27,7 @@ void IncPIDInit(pPID self)
     self->I = 0.f; //积分
     self->D = 0.f; //微分
 
-    self->iError = 0; //当前误差
+    self->iError = 0; //当前误差 calculate current error
 
     self->F = 0; //输出返回值,The control point of output
     self->Fmax = 1.0;
@@ -38,14 +38,11 @@ void IncPIDInit(pPID self)
     self->pidDecayByAbsErrorFunc = PID_DECAY_FUNC_NULL;
 }
 
-/**
-*@brief Position type PID  
-*@return: None 
-*/
-void PosPIDCalc_NormalSimple(pPID self)
+
+void PosPIDCalc_NormalizedF(pPID self)
 {
     float F = self->F;
-    //当前误差
+    //当前误差 calculate current error
     self->iError = self->Target - self->iSampling;
 
     // Proportional term
@@ -71,17 +68,10 @@ void PosPIDCalc_NormalSimple(pPID self)
     self->F = F;
 }
 
-/*
-Fun:        incremental PID
-Description:when Target minus SamplingValue equals is negitive,the normalized 
-            system parameter, F , will increase, and if Target minus SamplingValue 
-            equals is positive, then F will decrease.
-            --> Target > iSampling -> F ↑, Target < iSampling -> F ↓
-Return:     None          
-*/
-void IncPIDCalc_NormalSimple(pPID self)
+
+void IncPIDCalc_NormalizedF(pPID self)
 {
-    //当前误差
+    //当前误差 calculate current error
     self->iError = self->Target - self->iSampling;
     float delta = 0;
     float F = 0;
@@ -90,8 +80,8 @@ void IncPIDCalc_NormalSimple(pPID self)
             self->D * (self->iError - self->PrevError);
 
     // Calculate total output
-    self->PrevError = self->LastError; // 更新前次误差
-    self->LastError = self->iError;    // 更新上次误差
+    self->PrevError = self->LastError; // 更新前次误差 Update the previous error
+    self->LastError = self->iError;    // 更新上次误差 Update last error
 
     F = self->F + delta;
 
@@ -103,23 +93,14 @@ void IncPIDCalc_NormalSimple(pPID self)
 
     self->F = F;
 }
-/*
-Fun:        incremental PID
-Description:1. When Target minus SamplingValue equals is negitive,the normalized 
-            system parameter, F , will increase, and if Target minus SamplingValue 
-            equals is positive, then F will decrease.
-            2. And the P,I,D parameter will multiply by FirstContrlScale when  
-            LasttContrlPoint < absError < FirstContrlPoint.
-            3. --> Target > iSampling -> F ↑, Target < iSampling -> F ↓
-Return:     None          
-*/
-void IncPIDCalcDelta_Normal_TwoStage(pPID self, float FirstContrlPoint, float LasttContrlPoint, float FirstContrlScale)
+
+void IncPIDCalcDelta_NormalizedF_TwoStage(pPID self, float FirstContrlPoint, float LasttContrlPoint, float FirstContrlScale)
 {
 
     float F = 0;
     float absError = 0;
 
-    //当前误差
+    //当前误差 calculate current error
     self->iError = self->Target - self->iSampling;
     absError = fabsf(self->iError);
 
@@ -145,8 +126,8 @@ void IncPIDCalcDelta_Normal_TwoStage(pPID self, float FirstContrlPoint, float La
     }
 
     // Calculate total output
-    self->PrevError = self->LastError; // 更新前次误差
-    self->LastError = self->iError;    // 更新上次误差
+    self->PrevError = self->LastError; // 更新前次误差 Update the previous error
+    self->LastError = self->iError;    // 更新上次误差 Update last error
 
     F = self->F + F;
     // Restrict to max/min
@@ -159,22 +140,12 @@ void IncPIDCalcDelta_Normal_TwoStage(pPID self, float FirstContrlPoint, float La
     self->F = F;
 }
 
-/**
-* @brief :        incremental PID
-* @description:1. When Target minus SamplingValue equals is negitive,the normalized 
-            system parameter, F , will increase, and if Target minus SamplingValue 
-            equals is positive, then F will decrease.
-            2. And the P,I,D parameter will multiply by decayfun(iError).
-            3. --> Target > iSampling -> F ↑, Target < iSampling -> F ↓
-* @eturn:     None      
-* @note please sure the deacyfun is not NULL.    
-*/
-void IncPIDCalcDelta_Normal_Decay(pPID self,PIDDecayFun deacyfun)
+void IncPIDCalcDelta_NormalizedF_Decay(pPID self,PIDDecayFun deacyfun)
 {
 
     float F = 0;
 
-    //当前误差
+    //当前误差 calculate current error
     self->iError = self->Target - self->iSampling;
     /*
     Please don't use auto formate to format this file, 
@@ -190,8 +161,8 @@ void IncPIDCalcDelta_Normal_Decay(pPID self,PIDDecayFun deacyfun)
     F *= deacyfun(self->iError);
 
     // Calculate total output
-    self->PrevError = self->LastError; // 更新前次误差
-    self->LastError = self->iError;    // 更新上次误差
+    self->PrevError = self->LastError; // 更新前次误差 Update the previous error
+    self->LastError = self->iError;    // 更新上次误差 Update last error
 
     F = self->F + F;
     // Restrict to max/min
@@ -204,22 +175,12 @@ void IncPIDCalcDelta_Normal_Decay(pPID self,PIDDecayFun deacyfun)
     self->F = F;
 }
 
-/**
-* @brief :        incremental PID
-* @description:1. When Target minus SamplingValue equals is negitive,the normalized 
-            system parameter, F , will increase, and if Target minus SamplingValue 
-            equals is positive, then F will decrease.
-            2. And the P,I,D parameter will multiply by decayfun(iError).
-            3. --> Target > iSampling -> F ↑, Target < iSampling -> F ↓
-            4. self->iError normalized.
-* @return:     None 
-* @note please sure the deacyfun is not NULL.
-*/
-void IncPIDCalcDelta_NormalSampleAndF_Decay(pPID self,PIDDecayFun deacyfun)
+
+void IncPIDCalcDelta_NormalizedFAndDecayFunInput_Decay(pPID self,PIDDecayFun deacyfun)
 {
     float F = 0;
     
-    //当前误差
+    //当前误差 calculate current error
     self->iError = self->Target - self->iSampling;
     /*
     Please don't use auto formate to format this file, 
@@ -235,8 +196,8 @@ void IncPIDCalcDelta_NormalSampleAndF_Decay(pPID self,PIDDecayFun deacyfun)
     F *= deacyfun(self->iError / self->sysArg);
 
     // Calculate total output
-    self->PrevError = self->LastError; // 更新前次误差
-    self->LastError = self->iError;    // 更新上次误差
+    self->PrevError = self->LastError; // 更新前次误差 Update the previous error
+    self->LastError = self->iError;    // 更新上次误差 Update last error
 
     F = self->F + F;
     // Restrict to max/min
@@ -249,6 +210,38 @@ void IncPIDCalcDelta_NormalSampleAndF_Decay(pPID self,PIDDecayFun deacyfun)
     self->F = F;
 }
 
+void IncPIDCalcDeltaAutoDecay(pPID self){
+    float F = 0;
+    
+    //当前误差 calculate current error
+    self->iError = self->Target - self->iSampling;
+    /*
+    Please don't use auto formate to format this file, 
+    because the pid calculate code is too long and it will
+    be inconvenient to view if you use auto formate.
+    */
+
+    //Here , Think of F as delta.
+    F = self->P * (self->iError - self->LastError) +
+        self->I * self->iError +
+        self->D * (self->iError - 2 * self->LastError + self->PrevError);
+    if(self->pidDecayByAbsErrorFunc != PID_DECAY_FUNC_NULL)
+        F *= self->pidDecayByAbsErrorFunc(self->iError);
+
+    // Calculate total output
+    self->PrevError = self->LastError; // 更新前次误差 Update the previous error
+    self->LastError = self->iError;    // 更新上次误差 Update last error
+
+    F = self->F + F;
+    // Restrict to max/min
+    if (F >= self->Fmax)
+        F = self->Fmax;
+    else if (F <= self->Fmin)
+        F = self->Fmin;
+
+    //update self->F at the end in order to avoid the impact of intermediate results on system running.
+    self->F = F;
+}
 /*
 a > 0
 y = 1 - 4*e^(-ax)/(1+b*e^(-ax))^2
@@ -263,7 +256,7 @@ float dsigmoidn(float z, float a)
 /*
 a > 0 and b > 0
 y = 1/(1+b*e^(-a|x|))
-Be careful of spills and normalize errors if you use them.
+Be careful of spills and Normalizedize errors if you use them.
 */
 float sigmoidabsx(float z, float a, float b)
 {
@@ -274,7 +267,7 @@ float sigmoidabsx(float z, float a, float b)
 /*
 a > 0
 y = tanh(a|z|)
-Be careful of spills and normalize errors if you use them.
+Be careful of spills and Normalizedize errors if you use them.
 */
 float tanhabsx(float z, float a)
 {
