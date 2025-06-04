@@ -8,7 +8,7 @@ void User_PID_Init()
 {
     // Init all fields as zero.
     Inc_PID_Q32_Init(&pid);
-    pid.iFmax = 2000 << 8; // 放大256倍
+    pid.iFmax = 2000 << 12; // 放大
     pid.iFmin = 0;
     pid.iF = 0;
     pid.P = 108;
@@ -46,11 +46,11 @@ void loop_simulated_device()
 
 void loop_pid()
 {
-    // 直接用ADC寄存器值作为采样值，对应目标也为ADC寄存器值的256倍
+    // 直接用ADC寄存器值作为采样值，对应目标也为ADC寄存器值的
     pid.iSampling = device.adc_sample_value;
     Inc_PID_Q32_Update(&pid);
     // 更新后的控制器值应用到控制器上
-    device.ctrl_reg = (uint16_t)(pid.iF >> 8); // 将控制器值缩小256倍
+    device.ctrl_reg = (uint16_t)(pid.iF >> 12); // 将控制器值缩小
     Sleep(10);
 }
 
