@@ -11,9 +11,10 @@ void User_PID_Init()
     pid.iFmax = 2000 << 12; // 放大
     pid.iFmin = 0;
     pid.iF = 0;
-    pid.P = 108;
-    pid.I = 78;
+    pid.P = 108*7;
+    pid.I = 78*17;
     pid.D = 0;
+    pid.maxDelta = 100 << 12; // 放大
 }
 
 struct Simulated_Device_t
@@ -51,6 +52,14 @@ void loop_pid()
     Inc_PID_Q32_Update(&pid);
     // 更新后的控制器值应用到控制器上
     device.ctrl_reg = (uint16_t)(pid.iF >> 12); // 将控制器值缩小
+    // 检查第15位是否为1（因为右移16位后，原来的第15位决定小数是否>0.5）
+    int is_greater_than_half = (pid.iF & 0x8000) != 0;
+    static int count = 0;
+    if(count++ & 0x01)
+    {
+        device.ctrl_reg += is_greater_than_half;
+    }
+
     Sleep(10);
 }
 

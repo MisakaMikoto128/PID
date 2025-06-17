@@ -35,10 +35,16 @@ extern "C"
         int32_t iF;    // 传输给控制器的新控制值
         int32_t iFmax; // 传输给控制器的最大控制值
         int32_t iFmin; // 传输给控制器的最小控制值
+
+        int32_t maxDelta; // PID增量限制
+        int32_t minDelta; // PID减量限制
     } Inc_PID_Q32_t, *pInc_PID_Q32_t;
 
     void Inc_PID_Q32_Init(pInc_PID_Q32_t self);
     void Inc_PID_Q32_Update(pInc_PID_Q32_t self);
+    int Inc_PID_Q32_Update_SubDelta(pInc_PID_Q32_t self);
+    void Inc_PID_Q32_Set_DeltaLimit(pInc_PID_Q32_t self, int32_t maxDelta, int32_t minDelta);
+    int Inc_PID_Q32_Reset(pInc_PID_Q32_t self);
 #ifdef __cplusplus
 }
 #endif

@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "pid_q32.h": "c",
+        "math.h": "c",
+        "windows.h": "c"
+    }
+}
