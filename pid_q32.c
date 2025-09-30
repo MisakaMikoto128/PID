@@ -41,7 +41,7 @@ void Inc_PID_Q32_Update(pInc_PID_Q32_t self)
     int64_t F = 0;
     delta = self->P * (self->iError - self->iLastError) +
             self->I * self->iError +
-            self->D * (self->iError - self->iPrevError);
+            self->D * (self->iError - 2 * self->iLastError + self->iPrevError);
 
     // Calculate total output
     // Update the previous error
@@ -92,7 +92,7 @@ int Inc_PID_Q32_Update_SubDelta(pInc_PID_Q32_t self)
     self->iError = self->iTarget - self->iSampling;
     delta = self->P * (self->iError - self->iLastError) +
             self->I * self->iError +
-            self->D * (self->iError - self->iPrevError);
+            self->D * (self->iError - 2 * self->iLastError + self->iPrevError);
 
     // Calculate total output
     // Update the previous error

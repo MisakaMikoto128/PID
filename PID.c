@@ -77,7 +77,7 @@ void IncPIDCalc_NormalizedF(pPID self)
     float F = 0;
     delta = self->P * (self->iError - self->LastError) +
             self->I * self->iError +
-            self->D * (self->iError - self->PrevError);
+            self->D * (self->iError - 2*self->LastError + self->PrevError);
 
     // Calculate total output
     self->PrevError = self->LastError; // 更新前次误差 Update the previous error
