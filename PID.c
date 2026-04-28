@@ -244,13 +244,13 @@ void IncPIDCalcDeltaAutoDecay(pPID self){
 }
 /*
 a > 0
-y = 1 - 4*e^(-ax)/(1+b*e^(-ax))^2
+y = 1 - \frac{4e^{-ax}}{(1+e^{-ax})^2} = \tanh^2(ax/2)
 */
 float dsigmoidn(float z, float a)
 {
     float e_ = exp(-a * z);
     float q_ = 1.0 + e_;
-    return 1 - 4 * e_ / q_ * q_;
+    return 1 - 4 * e_ / (q_ * q_);
 }
 
 /*
