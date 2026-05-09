@@ -220,7 +220,97 @@
   );
 </script>
   <script id="ui">
-    /* 占位，Task 4-7 填充 */
-  </script>
+  // ---- 状态 ----
+  const state = {
+    enabled: new Set(DEFAULT_ENABLED),
+    // params: { dsigmoidn: { a: 1.0 }, sigmoidabsx: { a: 1.0, b: 1.0 }, ... }
+    params: Object.fromEntries(
+      FUNCS.map((f) => [
+        f.key,
+        Object.fromEntries(f.params.map((p) => [p.name, p.default])),
+      ])
+    ),
+  };
+
+  // ---- 计算指定函数的曲线点 ----
+  function computeSeries(func) {
+    const args = state.params[func.key];
+    return X_AXIS.map((z) => func.eval(z, args));
+  }
+
+  // ---- Chart.js 初始化 ----
+  const ctx = document.getElementById("chart").getContext("2d");
+  const chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: X_AXIS.map((z) => z.toFixed(2)),
+      datasets: [], // 由 syncDatasets 填充
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false, // 拖动滑条时无动画感更顺滑
+      interaction: { mode: "index", intersect: false },
+      scales: {
+        x: {
+          title: { display: true, text: "z（误差）" },
+          ticks: {
+            maxTicksLimit: 11,
+            callback: function (value) {
+              const z = X_AXIS[value];
+              return Number.isInteger(z) ? z : "";
+            },
+          },
+        },
+        y: {
+          title: { display: true, text: "y" },
+          min: 0,
+          max: 1.05,
+        },
+      },
+      plugins: {
+        legend: { position: "top" },
+        tooltip: {
+          callbacks: {
+            title: (items) => `z = ${X_AXIS[items[0].dataIndex].toFixed(2)}`,
+          },
+        },
+      },
+      elements: {
+        point: { radius: 0 }, // 200 点全画点会卡，关掉
+        line: { borderWidth: 2, tension: 0 },
+      },
+    },
+  });
+
+  // ---- 同步 chart 数据集与当前 state.enabled ----
+  function syncDatasets() {
+    chart.data.datasets = FUNCS.filter((f) => state.enabled.has(f.key)).map(
+      (f) => ({
+        label: f.label,
+        data: computeSeries(f),
+        borderColor: f.color,
+        backgroundColor: f.color,
+        pointHoverRadius: 4,
+      })
+    );
+  }
+
+  // ---- rAF 节流的 chart 重绘 ----
+  let rafPending = false;
+  function scheduleRender() {
+    if (rafPending) return;
+    rafPending = true;
+    requestAnimationFrame(() => {
+      rafPending = false;
+      syncDatasets();
+      chart.update("none");
+    });
+  }
+
+  // 初始绘制（其余 UI 在后续 task 装配）
+  syncDatasets();
+  chart.update();
+</script>
 </body>
 </html>
