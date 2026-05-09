@@ -152,8 +152,73 @@
   <section class="params-panel" id="paramsPanel"></section>
 
   <script id="data">
-    /* 占位，Task 3 填充 */
-  </script>
+  // 5 个衰减函数的定义。注意 sigmoidabsx 按 PID.c 注释里的正确公式实现，
+  // 而非当前 C 代码（C 代码缺少 "1+"，是已知 bug，不在本页面修复范围）。
+  const FUNCS = [
+    {
+      key: "dsigmoidn",
+      label: "dsigmoidn",
+      color: "#e41a1c",
+      formula: String.raw`y = 1 - \frac{4e^{-az}}{(1+e^{-az})^2} = \tanh^2(az/2)`,
+      params: [{ name: "a", min: 0.1, max: 5, step: 0.01, default: 1.0 }],
+      eval: (z, { a }) => {
+        const e = Math.exp(-a * z);
+        const q = 1 + e;
+        return 1 - (4 * e) / (q * q);
+      },
+    },
+    {
+      key: "sigmoidabsx",
+      label: "sigmoidabsx",
+      color: "#377eb8",
+      formula: String.raw`y = \frac{1}{1+b\,e^{-a|z|}}`,
+      params: [
+        { name: "a", min: 0.1, max: 5, step: 0.01, default: 1.0 },
+        { name: "b", min: 0.1, max: 5, step: 0.01, default: 1.0 },
+      ],
+      eval: (z, { a, b }) => 1 / (1 + b * Math.exp(-a * Math.abs(z))),
+    },
+    {
+      key: "tanhabsx",
+      label: "tanhabsx",
+      color: "#4daf4a",
+      formula: String.raw`y = \tanh(a|z|)`,
+      params: [{ name: "a", min: 0.1, max: 5, step: 0.01, default: 1.0 }],
+      eval: (z, { a }) => Math.tanh(a * Math.abs(z)),
+    },
+    {
+      key: "px1",
+      label: "px1",
+      color: "#984ea3",
+      formula: String.raw`y = 1 - \frac{1}{\sqrt{a|z|+1}}`,
+      params: [{ name: "a", min: 0.1, max: 5, step: 0.01, default: 1.0 }],
+      eval: (z, { a }) => 1 - 1 / Math.sqrt(a * Math.abs(z) + 1),
+    },
+    {
+      key: "obliquestepfun",
+      label: "obliquestepfun",
+      color: "#ff7f00",
+      formula: String.raw`y = \begin{cases} |z|/x & |z| < x \\ 1 & |z| \geq x \end{cases}`,
+      params: [{ name: "x", min: 0.1, max: 5, step: 0.01, default: 1.0 }],
+      eval: (z, { x }) => {
+        const az = Math.abs(z);
+        return az >= x ? 1 : az / x;
+      },
+    },
+  ];
+
+  // 默认勾选 dsigmoidn 与 tanhabsx（让用户立即看到内容）。
+  const DEFAULT_ENABLED = new Set(["dsigmoidn", "tanhabsx"]);
+
+  // x 轴采样：[-5, 5]，200 点。
+  const X_MIN = -5;
+  const X_MAX = 5;
+  const SAMPLES = 200;
+  const X_AXIS = Array.from(
+    { length: SAMPLES + 1 },
+    (_, i) => X_MIN + ((X_MAX - X_MIN) * i) / SAMPLES
+  );
+</script>
   <script id="ui">
     /* 占位，Task 4-7 填充 */
   </script>
