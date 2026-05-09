@@ -356,6 +356,79 @@
   }
 
   renderPicker();
+
+  // ---- 渲染参数面板（仅显示已勾选函数） ----
+  function renderParamsPanel() {
+    const panel = document.getElementById("paramsPanel");
+    panel.innerHTML = "";
+
+    FUNCS.filter((f) => state.enabled.has(f.key)).forEach((f) => {
+      const block = document.createElement("div");
+      block.className = "param-block";
+
+      const title = document.createElement("div");
+      title.className = "title";
+      const swatch = document.createElement("span");
+      swatch.className = "swatch";
+      swatch.style.background = f.color;
+      const name = document.createElement("span");
+      name.textContent = f.label;
+      title.append(swatch, name);
+
+      const formula = document.createElement("div");
+      formula.className = "formula";
+      formula.textContent = `$$${f.formula}$$`;
+
+      block.append(title, formula);
+
+      f.params.forEach((p) => {
+        const row = document.createElement("div");
+        row.className = "param-row";
+
+        const labelEl = document.createElement("span");
+        labelEl.textContent = `${p.name} =`;
+
+        const slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = p.min;
+        slider.max = p.max;
+        slider.step = p.step;
+        slider.value = state.params[f.key][p.name];
+
+        const valueEl = document.createElement("span");
+        valueEl.className = "value";
+        valueEl.textContent = Number(slider.value).toFixed(2);
+
+        slider.addEventListener("input", () => {
+          const v = Number(slider.value);
+          state.params[f.key][p.name] = v;
+          valueEl.textContent = v.toFixed(2);
+          scheduleRender();
+        });
+
+        row.append(labelEl, slider, valueEl);
+        block.append(row);
+      });
+
+      panel.append(block);
+    });
+
+    // KaTeX 渲染本次新增的公式
+    if (window.renderMathInElement) {
+      window.renderMathInElement(panel, {
+        delimiters: [{ left: "$$", right: "$$", display: true }],
+        throwOnError: false,
+      });
+    }
+  }
+
+  // 初始渲染参数面板
+  // 等 KaTeX 的 auto-render 脚本加载完再渲染（用 defer 后 DOMContentLoaded 已经在我们之前）
+  if (window.renderMathInElement) {
+    renderParamsPanel();
+  } else {
+    window.addEventListener("DOMContentLoaded", renderParamsPanel);
+  }
 </script>
 </body>
 </html>
