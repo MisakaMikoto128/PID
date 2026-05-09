@@ -14,17 +14,21 @@
   <script
     defer
     src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
-    integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/0T2VMjhKTFUR"
+    integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg"
     crossorigin="anonymous"
   ></script>
   <script
     defer
     src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-    integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rF4y8Q+kg7nmUWN6N5g"
+    integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk"
     crossorigin="anonymous"
   ></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"
+    integrity="sha384-Sse/HDqcypGpyTDpvZOJNnG0TT3feGQUkF9H+mnRvic+LjR+K1NhTt8f51KIQ3v3"
+    crossorigin="anonymous"
+  ></script>
 
   <style>
   :root {
@@ -423,7 +427,9 @@
   }
 
   // 初始渲染参数面板
-  // 等 KaTeX 的 auto-render 脚本加载完再渲染（用 defer 后 DOMContentLoaded 已经在我们之前）
+  // 本内联脚本在解析阶段同步执行，此时 head 中 defer 脚本尚未运行，
+  // renderMathInElement 必为 undefined，因此走 else 分支注册 DOMContentLoaded
+  // 监听器；DOMContentLoaded 会在所有 defer 脚本执行后才触发，届时 KaTeX 已就绪。
   if (window.renderMathInElement) {
     renderParamsPanel();
   } else {
