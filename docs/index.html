@@ -311,6 +311,51 @@
   // 初始绘制（其余 UI 在后续 task 装配）
   syncDatasets();
   chart.update();
+
+  // ---- 渲染函数选择器复选框 ----
+  function renderPicker() {
+    const picker = document.getElementById("functionPicker");
+    picker.innerHTML = "";
+
+    FUNCS.forEach((f) => {
+      const label = document.createElement("label");
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = state.enabled.has(f.key);
+      cb.addEventListener("change", () => {
+        if (cb.checked) state.enabled.add(f.key);
+        else state.enabled.delete(f.key);
+        renderParamsPanel();
+        scheduleRender();
+      });
+
+      const swatch = document.createElement("span");
+      swatch.className = "swatch";
+      swatch.style.background = f.color;
+
+      const text = document.createElement("span");
+      text.textContent = f.label;
+
+      label.append(cb, swatch, text);
+      picker.append(label);
+    });
+
+    const resetBtn = document.createElement("button");
+    resetBtn.type = "button";
+    resetBtn.textContent = "重置参数";
+    resetBtn.addEventListener("click", () => {
+      FUNCS.forEach((f) => {
+        f.params.forEach((p) => {
+          state.params[f.key][p.name] = p.default;
+        });
+      });
+      renderParamsPanel();
+      scheduleRender();
+    });
+    picker.append(resetBtn);
+  }
+
+  renderPicker();
 </script>
 </body>
 </html>
