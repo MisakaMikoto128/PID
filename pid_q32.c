@@ -20,9 +20,9 @@ void Inc_PID_Q32_Init(pInc_PID_Q32_t self)
     self->I = 0; // 积分
     self->D = 0; // 微分
 
-    self->iError = 0;     // 当前误差
-    self->iPrevError = 0; // 前1次误差值
-    self->iLastError = 0; // 前2次误差值
+    self->iErrK = 0;   // 当前误差 e(k)
+    self->iErrKm1 = 0; // 前1拍误差 e(k-1)
+    self->iErrKm2 = 0; // 前2拍误差 e(k-2)
 
     self->iF = 0;    // 控制器输出值
     self->iFmax = 0; // 控制器输出最大值
@@ -36,18 +36,18 @@ void Inc_PID_Q32_Init(pInc_PID_Q32_t self)
 void Inc_PID_Q32_Update(pInc_PID_Q32_t self)
 {
     // Calculate current error
-    self->iError = self->iTarget - self->iSampling;
-    int32_t delta = 0;
+    self->iErrK = self->iTarget - self->iSampling;
+    // P/I/D 是 Q32 定点数，32 位乘法在大误差下会溢出，必须用 64 位中间量
     int64_t F = 0;
-    delta = self->P * (self->iError - self->iLastError) +
-            self->I * self->iError +
-            self->D * (self->iError - 2 * self->iLastError + self->iPrevError);
+    int64_t delta = (int64_t)self->P * (self->iErrK - self->iErrKm1) +
+                    (int64_t)self->I * self->iErrK +
+                    (int64_t)self->D * ((int64_t)self->iErrK - 2 * (int64_t)self->iErrKm1 + self->iErrKm2);
 
     // Calculate total output
-    // Update the previous error
-    self->iPrevError = self->iLastError;
-    // Update last error
-    self->iLastError = self->iError;
+    // 移位: e(k-1) -> e(k-2)
+    self->iErrKm2 = self->iErrKm1;
+    // 移位: e(k) -> e(k-1)
+    self->iErrKm1 = self->iErrK;
 
     if (delta > self->maxDelta)
     {
@@ -86,19 +86,19 @@ int Inc_PID_Q32_Update_SubDelta(pInc_PID_Q32_t self)
 {
 
     int res = 0;
-    int32_t delta = 0;
     int64_t F = 0;
     // Calculate current error
-    self->iError = self->iTarget - self->iSampling;
-    delta = self->P * (self->iError - self->iLastError) +
-            self->I * self->iError +
-            self->D * (self->iError - 2 * self->iLastError + self->iPrevError);
+    self->iErrK = self->iTarget - self->iSampling;
+    // P/I/D 是 Q32 定点数，32 位乘法在大误差下会溢出，必须用 64 位中间量
+    int64_t delta = (int64_t)self->P * (self->iErrK - self->iErrKm1) +
+                    (int64_t)self->I * self->iErrK +
+                    (int64_t)self->D * ((int64_t)self->iErrK - 2 * (int64_t)self->iErrKm1 + self->iErrKm2);
 
     // Calculate total output
-    // Update the previous error
-    self->iPrevError = self->iLastError;
-    // Update last error
-    self->iLastError = self->iError;
+    // 移位: e(k-1) -> e(k-2)
+    self->iErrKm2 = self->iErrKm1;
+    // 移位: e(k) -> e(k-1)
+    self->iErrKm1 = self->iErrK;
 
     if (delta > self->maxDelta)
     {
@@ -143,16 +143,16 @@ void Inc_PID_Q32_Set_DeltaLimit(pInc_PID_Q32_t self, int32_t maxDelta, int32_t m
  *
  * @details
  * This function resets the error states of the PID controller:
- * - Current error (iError)
- * - Previous error (iPrevError)
- * - Last error (iLastError)
+ * - Current error (iErrK)
+ * - Previous error (iErrKm2)
+ * - Last error (iErrKm1)
  * All values are set to 0, effectively clearing the controller's memory.
  */
 int Inc_PID_Q32_Reset(pInc_PID_Q32_t self)
 {
-    self->iError = 0;
-    self->iPrevError = 0;
-    self->iLastError = 0;
+    self->iErrK = 0;
+    self->iErrKm2 = 0;
+    self->iErrKm1 = 0;
 
     return 0;
 }

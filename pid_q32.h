@@ -28,9 +28,9 @@ extern "C"
         int32_t I;         // 积分
         int32_t D;         // 微分
 
-        int32_t iError;     // 当前误差
-        int32_t iPrevError; // 前1次误差值
-        int32_t iLastError; // 前2次误差值
+        int32_t iErrK;   // 当前误差 e(k)
+        int32_t iErrKm1; // 前1拍误差 e(k-1)
+        int32_t iErrKm2; // 前2拍误差 e(k-2)
 
         int32_t iF;    // 传输给控制器的新控制值
         int32_t iFmax; // 传输给控制器的最大控制值

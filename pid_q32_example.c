@@ -69,7 +69,7 @@ float target_volt = 62.1867f; // 目标电压
 void show_pid_status()
 {
     printf("T:%d,S:%6d,P:%6d,I:%4d,D:%4d,F:%6d,Error:%7d,Prev:%6d,Last:%6d",
-           pid.iTarget, pid.iSampling, pid.P, pid.I, pid.D, pid.iF, pid.iError, pid.iPrevError, pid.iLastError);
+           pid.iTarget, pid.iSampling, pid.P, pid.I, pid.D, pid.iF, pid.iErrK, pid.iErrKm2, pid.iErrKm1);
     printf(",Out:%.5f,ADC:%6d,Ctrl:%6d,err:%.5f\n",
            device.output_value, device.adc_sample_value, device.ctrl_reg, device.output_value - target_volt);
     fflush(stdout); // 刷新输出缓冲区

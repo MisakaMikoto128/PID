@@ -20,14 +20,15 @@ void IncPIDInit(pPID self)
     self->iSampling = 0;
     self->Step = 1; //返回结果比例
 
-    self->LastError = 0; //前2次误差值
-    self->PrevError = 0; //前1次误差值
+    self->errK = 0;   //当前误差 e(k)
+    self->errKm1 = 0; //前1拍误差 e(k-1)
+    self->errKm2 = 0; //前2拍误差 e(k-2)
 
     self->P = 0.f; //比例
     self->I = 0.f; //积分
     self->D = 0.f; //微分
 
-    self->iError = 0; //当前误差 calculate current error
+    self->Integral = 0; //积分累加器,Just using in the position type PID.
 
     self->F = 0; //输出返回值,The control point of output
     self->Fmax = 1.0;
@@ -41,23 +42,23 @@ void IncPIDInit(pPID self)
 
 void PosPIDCalc_NormalizedF(pPID self)
 {
-    float F = self->F;
     //当前误差 calculate current error
-    self->iError = self->Target - self->iSampling;
+    self->errK = self->Target - self->iSampling;
 
     // Proportional term
-    float Pout = self->P * self->iError;
+    float Pout = self->P * self->errK;
 
     // Integral term
-    self->Integral += self->iError;
+    self->Integral += self->errK;
     float Iout = self->I * self->Integral;
 
     // Derivative term
-    float Dout = self->D * (self->iError - self->PrevError);
+    float Dout = self->D * (self->errK - self->errKm2);
 
     // Calculate total output
-    self->F = Pout + Iout + Dout;
-    self->PrevError = self->iError;
+    self->errKm2 = self->errK;
+
+    float F = Pout + Iout + Dout;
 
     // Restrict to max/min
     if (F >= self->Fmax)
@@ -72,16 +73,16 @@ void PosPIDCalc_NormalizedF(pPID self)
 void IncPIDCalc_NormalizedF(pPID self)
 {
     //当前误差 calculate current error
-    self->iError = self->Target - self->iSampling;
+    self->errK = self->Target - self->iSampling;
     float delta = 0;
     float F = 0;
-    delta = self->P * (self->iError - self->LastError) +
-            self->I * self->iError +
-            self->D * (self->iError - 2*self->LastError + self->PrevError);
+    delta = self->P * (self->errK - self->errKm1) +
+            self->I * self->errK +
+            self->D * (self->errK - 2*self->errKm1 + self->errKm2);
 
     // Calculate total output
-    self->PrevError = self->LastError; // 更新前次误差 Update the previous error
-    self->LastError = self->iError;    // 更新上次误差 Update last error
+    self->errKm2 = self->errKm1; // 移位: e(k-1) -> e(k-2)
+    self->errKm1 = self->errK;    // 移位: e(k) -> e(k-1)
 
     F = self->F + delta;
 
@@ -101,8 +102,8 @@ void IncPIDCalcDelta_NormalizedF_TwoStage(pPID self, float FirstContrlPoint, flo
     float absError = 0;
 
     //当前误差 calculate current error
-    self->iError = self->Target - self->iSampling;
-    absError = fabsf(self->iError);
+    self->errK = self->Target - self->iSampling;
+    absError = fabsf(self->errK);
 
     /*
     Please don't use auto formate to format this file, 
@@ -111,9 +112,9 @@ void IncPIDCalcDelta_NormalizedF_TwoStage(pPID self, float FirstContrlPoint, flo
     */
 
     //Here , Think of F as delta.
-    F = self->P * (self->iError - self->LastError) +
-        self->I * self->iError +
-        self->D * (self->iError - 2 * self->LastError + self->PrevError);
+    F = self->P * (self->errK - self->errKm1) +
+        self->I * self->errK +
+        self->D * (self->errK - 2 * self->errKm1 + self->errKm2);
 
     if (absError >= LasttContrlPoint && absError <= FirstContrlPoint)
     {
@@ -122,12 +123,12 @@ void IncPIDCalcDelta_NormalizedF_TwoStage(pPID self, float FirstContrlPoint, flo
     else
     {
         F = 0;
-        self->iError = 0;
+        self->errK = 0;
     }
 
     // Calculate total output
-    self->PrevError = self->LastError; // 更新前次误差 Update the previous error
-    self->LastError = self->iError;    // 更新上次误差 Update last error
+    self->errKm2 = self->errKm1; // 移位: e(k-1) -> e(k-2)
+    self->errKm1 = self->errK;    // 移位: e(k) -> e(k-1)
 
     F = self->F + F;
     // Restrict to max/min
@@ -146,7 +147,7 @@ void IncPIDCalcDelta_NormalizedF_Decay(pPID self,PIDDecayFun deacyfun)
     float F = 0;
 
     //当前误差 calculate current error
-    self->iError = self->Target - self->iSampling;
+    self->errK = self->Target - self->iSampling;
     /*
     Please don't use auto formate to format this file, 
     because the pid calculate code is too long and it will
@@ -154,15 +155,15 @@ void IncPIDCalcDelta_NormalizedF_Decay(pPID self,PIDDecayFun deacyfun)
     */
 
     //Here , Think of F as delta.
-    F = self->P * (self->iError - self->LastError) +
-        self->I * self->iError +
-        self->D * (self->iError - 2 * self->LastError + self->PrevError);
+    F = self->P * (self->errK - self->errKm1) +
+        self->I * self->errK +
+        self->D * (self->errK - 2 * self->errKm1 + self->errKm2);
 
-    F *= deacyfun(self->iError);
+    F *= deacyfun(self->errK);
 
     // Calculate total output
-    self->PrevError = self->LastError; // 更新前次误差 Update the previous error
-    self->LastError = self->iError;    // 更新上次误差 Update last error
+    self->errKm2 = self->errKm1; // 移位: e(k-1) -> e(k-2)
+    self->errKm1 = self->errK;    // 移位: e(k) -> e(k-1)
 
     F = self->F + F;
     // Restrict to max/min
@@ -181,7 +182,7 @@ void IncPIDCalcDelta_NormalizedFAndDecayFunInput_Decay(pPID self,PIDDecayFun dea
     float F = 0;
     
     //当前误差 calculate current error
-    self->iError = self->Target - self->iSampling;
+    self->errK = self->Target - self->iSampling;
     /*
     Please don't use auto formate to format this file, 
     because the pid calculate code is too long and it will
@@ -189,15 +190,15 @@ void IncPIDCalcDelta_NormalizedFAndDecayFunInput_Decay(pPID self,PIDDecayFun dea
     */
 
     //Here , Think of F as delta.
-    F = self->P * (self->iError - self->LastError) +
-        self->I *  self->iError +
-        self->D * (self->iError - 2 * self->LastError + self->PrevError);
+    F = self->P * (self->errK - self->errKm1) +
+        self->I *  self->errK +
+        self->D * (self->errK - 2 * self->errKm1 + self->errKm2);
 
-    F *= deacyfun(self->iError / self->sysArg);
+    F *= deacyfun(self->errK / self->sysArg);
 
     // Calculate total output
-    self->PrevError = self->LastError; // 更新前次误差 Update the previous error
-    self->LastError = self->iError;    // 更新上次误差 Update last error
+    self->errKm2 = self->errKm1; // 移位: e(k-1) -> e(k-2)
+    self->errKm1 = self->errK;    // 移位: e(k) -> e(k-1)
 
     F = self->F + F;
     // Restrict to max/min
@@ -214,7 +215,7 @@ void IncPIDCalcDeltaAutoDecay(pPID self){
     float F = 0;
     
     //当前误差 calculate current error
-    self->iError = self->Target - self->iSampling;
+    self->errK = self->Target - self->iSampling;
     /*
     Please don't use auto formate to format this file, 
     because the pid calculate code is too long and it will
@@ -222,15 +223,15 @@ void IncPIDCalcDeltaAutoDecay(pPID self){
     */
 
     //Here , Think of F as delta.
-    F = self->P * (self->iError - self->LastError) +
-        self->I * self->iError +
-        self->D * (self->iError - 2 * self->LastError + self->PrevError);
+    F = self->P * (self->errK - self->errKm1) +
+        self->I * self->errK +
+        self->D * (self->errK - 2 * self->errKm1 + self->errKm2);
     if(self->pidDecayByAbsErrorFunc != PID_DECAY_FUNC_NULL)
-        F *= self->pidDecayByAbsErrorFunc(self->iError);
+        F *= self->pidDecayByAbsErrorFunc(self->errK);
 
     // Calculate total output
-    self->PrevError = self->LastError; // 更新前次误差 Update the previous error
-    self->LastError = self->iError;    // 更新上次误差 Update last error
+    self->errKm2 = self->errKm1; // 移位: e(k-1) -> e(k-2)
+    self->errKm1 = self->errK;    // 移位: e(k) -> e(k-1)
 
     F = self->F + F;
     // Restrict to max/min
@@ -261,7 +262,7 @@ Be careful of spills and Normalizedize errors if you use them.
 float sigmoidabsx(float z, float a, float b)
 {
     z = fabsf(z);
-    return 1.0f / (b * exp(-a * z));
+    return 1.0f / (1 + b * exp(-a * z));
 }
 
 /*

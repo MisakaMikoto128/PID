@@ -10,9 +10,9 @@ typedef struct PID
     float I;
     float D;
 
-    float iError;
-    float LastError;
-    float PrevError;
+    float errK;   //当前误差 e(k)
+    float errKm1; //前1拍误差 e(k-1)
+    float errKm2; //前2拍误差 e(k-2)
 
     float Integral; //Just using in the position type PID.
 
@@ -65,7 +65,7 @@ void IncPIDCalcDelta_NormalizedF_TwoStage(pPID self, float FirstContrlPoint, flo
 *           1. When Target minus SamplingValue equals is negitive,the Normalizedized 
 *           system parameter, F , will increase, and if Target minus SamplingValue 
 *           equals is positive, then F will decrease.
-*           2. And the P,I,D parameter will multiply by decayfun(iError).
+*           2. And the P,I,D parameter will multiply by decayfun(errK).
 *           3. --> Target > iSampling -> F ↑, Target < iSampling -> F ↓
 * @return   None      
 * @note please sure the deacyfun is not NULL.    
@@ -74,15 +74,15 @@ void IncPIDCalcDelta_NormalizedF_Decay(pPID self,PIDDecayFun deacyfun);
 
 /**
 * @brief    incremental PID. F is normalized modulation degree. PID parameter decay 
-*           function input is normalized error.deacyfun(self->iError / self->sysArg).
+*           function input is normalized error.deacyfun(self->errK / self->sysArg).
 *           Not recommend to use this function.Beacuse 
 *           the self->sysArg is system's modulation degree max, not the system's output max.
 *           1. When Target minus SamplingValue equals is negitive,the Normalizedized 
 *           system parameter, F , will increase, and if Target minus SamplingValue 
 *           equals is positive, then F will decrease.
-*           2. And the P,I,D parameter will multiply by decayfun(iError).
+*           2. And the P,I,D parameter will multiply by decayfun(errK).
 *           3. --> Target > iSampling -> F ↑, Target < iSampling -> F ↓
-*           4. self->iError Normalizedized.
+*           4. self->errK Normalizedized.
 * @return    None 
 * @note please sure the deacyfun is not NULL.
 */
@@ -96,9 +96,9 @@ void IncPIDCalcDelta_NormalizedFAndDecayFunInput_Decay(pPID self,PIDDecayFun dea
 *           1. When Target minus SamplingValue equals is negitive,the Normalizedized 
 *           system parameter, F , will increase, and if Target minus SamplingValue 
 *           equals is positive, then F will decrease.
-*           2. And the P,I,D parameter will multiply by decayfun(iError).
+*           2. And the P,I,D parameter will multiply by decayfun(errK).
 *           3. --> Target > iSampling -> F ↑, Target < iSampling -> F ↓
-*           4. self->iError Normalizedized.
+*           4. self->errK Normalizedized.
 * @return    None 
 */
 void IncPIDCalcDeltaAutoDecay(pPID self);
